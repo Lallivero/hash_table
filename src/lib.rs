@@ -472,22 +472,22 @@ impl Hashable for f64 {
 
 impl Hashable for &str {
     fn hash(&self) -> usize {
-        let mut sum = 0;
-        self.chars().for_each(|c| sum += c as usize);
-        sum
+        hash_string_like_types(self)
     }
 }
 impl Hashable for str {
     fn hash(&self) -> usize {
-        let mut sum = 0;
-        self.chars().for_each(|c| sum += c as usize);
-        sum
+        hash_string_like_types(self)
     }
 }
 impl Hashable for String {
     fn hash(&self) -> usize {
-        let mut sum = 0;
-        self.chars().for_each(|c| sum += c as usize);
-        sum
+        hash_string_like_types(self)
     }
+}
+
+fn hash_string_like_types(input: &str) -> usize {
+    let mut sum = 0;
+    input.chars().for_each(|c| sum += c as usize);
+    sum
 }
