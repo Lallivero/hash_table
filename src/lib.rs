@@ -6,9 +6,9 @@ pub struct HashTable<T>
 where
     T: Debug + Hashable + Clone + PartialEq,
 {
-    capacity: usize,
-    growable: bool,
-    cells: Vec<Option<T>>,
+    _capacity: usize,
+    _growable: bool,
+    _cells: Vec<Option<T>>,
 }
 
 impl<T> Display for HashTable<T>
@@ -17,11 +17,11 @@ where
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[").expect("Error formatting.");
-        for i in 0..self.cells.len() {
-            if i == self.cells.len() - 1 {
-                write!(f, "{:?} - {:?}]", i, self.cells[i]).expect("Error formatting.");
+        for i in 0..self._cells.len() {
+            if i == self._cells.len() - 1 {
+                write!(f, "{:?} - {:?}]", i, self._cells[i]).expect("Error formatting.");
             } else {
-                writeln!(f, "{:?} - {:?},", i, self.cells[i]).expect("Error formatting.");
+                writeln!(f, "{:?} - {:?},", i, self._cells[i]).expect("Error formatting.");
             }
         }
 
@@ -36,22 +36,22 @@ where
 {
     pub fn new(capacity: usize, growable: bool) -> Self {
         Self {
-            capacity,
-            growable,
-            cells: vec![None; capacity],
+            _capacity: capacity,
+            _growable: growable,
+            _cells: vec![None; capacity],
         }
     }
 
     pub fn is_empty(&self) -> bool {
-        let num_none = self.cells.iter().filter(|cell| cell.is_none()).count();
-        num_none == self.capacity
+        let num_none = self._cells.iter().filter(|cell| cell.is_none()).count();
+        num_none == self._capacity
     }
 
     pub fn insert(&mut self, input: T) -> Result<(), &str> {
-        let input_hash = hash_function(&input, self.capacity);
+        let input_hash = hash_function(&input, self._capacity);
 
-        if self.size() == self.capacity {
-            if self.growable {
+        if self.size() == self._capacity {
+            if self._growable {
                 self.grow_cells().expect("Error growing cells.")
             } else {
                 return Err("Capacity reached");
@@ -59,13 +59,13 @@ where
         }
 
         match self
-            .cells
+            ._cells
             .get(input_hash)
             .expect("Unexpected error occured, found value None where Some(_) was expected.")
         {
             Some(_) => self.insert_next_index(input, input_hash),
             None => {
-                self.cells[input_hash] = Some(input);
+                self._cells[input_hash] = Some(input);
 
                 Ok(())
             }
@@ -74,7 +74,7 @@ where
 
     pub fn get_index(&self, index: usize) -> Option<&T> {
         match self
-            .cells
+            ._cells
             .get(index)
             .expect("Expected Some(_) but found None")
         {
@@ -84,9 +84,9 @@ where
     }
 
     pub fn get(&self, input: &T) -> Option<&T> {
-        let hash_index = hash_function(input, self.capacity);
+        let hash_index = hash_function(input, self._capacity);
         match self
-            .cells
+            ._cells
             .get(hash_index)
             .expect("Unexpected error occured, found value None where Some(_) was expected.")
         {
@@ -102,25 +102,33 @@ where
     }
 
     pub fn size(&self) -> usize {
-        self.cells.iter().filter(|cell| cell.is_some()).count()
+        self._cells.iter().filter(|cell| cell.is_some()).count()
     }
 
     pub fn remove(&mut self, input: T) -> Option<T> {
-        let hash_index = hash_function(&input, self.capacity);
+        let hash_index = hash_function(&input, self._capacity);
         match self
-            .cells
+            ._cells
             .get(hash_index)
             .expect("Unexpected error occured, found value None where Some(_) was expected.")
         {
             Some(s) => {
                 if *s == input {
-                    self.cells.remove(hash_index)
+                    self._cells.remove(hash_index)
                 } else {
                     self.remove_next(input, hash_index)
                 }
             }
             None => None,
         }
+    }
+
+    pub fn insert_vector(&mut self, my_vector: &[T]) -> Result<(), &str> {
+        for index in my_vector.iter() {
+            self.insert(index.clone())
+                .expect("Unable to insert full list.");
+        }
+        Ok(())
     }
 }
 
@@ -130,11 +138,11 @@ where
     T: Debug + Hashable + Clone + PartialEq,
 {
     fn grow_cells(&mut self) -> Result<(), &str> {
-        let new_capacity = self.capacity * 2;
+        let new_capacity = self._capacity * 2;
         let new_cells: Vec<Option<T>> = vec![None; new_capacity];
-        let old_cells = self.cells.clone();
-        self.cells = new_cells;
-        self.capacity = new_capacity;
+        let old_cells = self._cells.clone();
+        self._cells = new_cells;
+        self._capacity = new_capacity;
 
         for i in 0..old_cells.len() {
             match old_cells.get(i).expect("Unexpected error.") {
@@ -150,13 +158,13 @@ where
         let next_index = self.calculate_next_index_for_reccursion(previous_index);
 
         match self
-            .cells
+            ._cells
             .get(next_index)
             .expect("Unexpected error occured, found value None where Some(_) was expected.")
         {
             Some(_) => Ok(self.insert_next_index(input, next_index)?),
             None => {
-                self.cells[next_index] = Some(input);
+                self._cells[next_index] = Some(input);
                 Ok(())
             }
         }
@@ -165,12 +173,12 @@ where
     fn get_next(&self, input: &T, previous_index: usize) -> Option<&T> {
         let next_index = self.calculate_next_index_for_reccursion(previous_index);
 
-        if next_index == hash_function(input, self.capacity) {
+        if next_index == hash_function(input, self._capacity) {
             return None;
         }
 
         match self
-            .cells
+            ._cells
             .get(next_index)
             .expect("Unexpected error occured, found value None where Some(_) was expected.")
         {
@@ -188,18 +196,18 @@ where
     fn remove_next(&mut self, input: T, previous_index: usize) -> Option<T> {
         let next_index = self.calculate_next_index_for_reccursion(previous_index);
 
-        if next_index == hash_function(&input, self.capacity) {
+        if next_index == hash_function(&input, self._capacity) {
             return None;
         }
 
         match self
-            .cells
+            ._cells
             .get(next_index)
             .expect("Unexpected error occured, found value None where Some(_) was expected.")
         {
             Some(a) => {
                 if *a == input {
-                    self.cells.remove(next_index)
+                    self._cells.remove(next_index)
                 } else {
                     self.remove_next(input, next_index)
                 }
@@ -210,7 +218,7 @@ where
 
     fn calculate_next_index_for_reccursion(&self, previous_index: usize) -> usize {
         let next_index = previous_index + 1;
-        if next_index == self.capacity {
+        if next_index == self._capacity {
             0
         } else {
             next_index
@@ -367,6 +375,17 @@ mod tests {
         }
         //With 26 being the number of letters a-z
         assert!(test_hash_table.size() == 10);
+    }
+
+    #[test]
+    fn test_insert_vec() {
+        let mut test_hash_table: HashTable<u32> = HashTable::new(SIZE_10, true);
+        let my_vector = vec![22, 10, 2, 30, 23, 45, 1, 67, 4];
+        test_hash_table
+            .insert_vector(&my_vector)
+            .expect("Error during test.");
+        println!("{}", test_hash_table);
+        assert!(test_hash_table.size() == 9);
     }
 }
 
