@@ -1,5 +1,19 @@
+mod premade_type_hashes;
+
 use std::fmt::Debug;
 use std::fmt::Display;
+
+pub trait Hashable {
+    fn hash(&self) -> usize;
+}
+
+fn hash_function<T>(input: &T, table_size: usize) -> usize
+where
+    T: Hashable + ?Sized,
+{
+    input.hash() % table_size
+    // sum_ascii_values(input_string) as usize % table_size
+}
 
 #[derive(Debug)]
 pub struct HashTable<T>
@@ -226,14 +240,6 @@ where
     }
 }
 
-fn hash_function<T>(input: &T, table_size: usize) -> usize
-where
-    T: Hashable + ?Sized,
-{
-    input.hash() % table_size
-    // sum_ascii_values(input_string) as usize % table_size
-}
-
 #[cfg(test)]
 mod tests {
 
@@ -387,107 +393,4 @@ mod tests {
         println!("{}", test_hash_table);
         assert!(test_hash_table.size() == 9);
     }
-}
-
-pub trait Hashable {
-    fn hash(&self) -> usize;
-}
-
-impl Hashable for usize {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-impl Hashable for u8 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for u16 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for u32 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for u64 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for u128 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for i8 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for i16 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for i32 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for i64 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for i128 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for f32 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for f64 {
-    fn hash(&self) -> usize {
-        *self as usize
-    }
-}
-
-impl Hashable for &str {
-    fn hash(&self) -> usize {
-        hash_string_like_types(self)
-    }
-}
-impl Hashable for str {
-    fn hash(&self) -> usize {
-        hash_string_like_types(self)
-    }
-}
-impl Hashable for String {
-    fn hash(&self) -> usize {
-        hash_string_like_types(self)
-    }
-}
-
-fn hash_string_like_types(input: &str) -> usize {
-    let mut sum = 0;
-    input.chars().for_each(|c| sum += c as usize);
-    sum
 }
